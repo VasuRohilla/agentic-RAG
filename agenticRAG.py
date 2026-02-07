@@ -5,7 +5,7 @@ import tempfile
 
 # ----------- UPDATED IMPORTS -----------
 from langchain_ollama import ChatOllama
-from langchain_openai import OpenAIEmbeddings
+from langchain_ollama import OllamaEmbeddings
 
 from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone, ServerlessSpec
@@ -25,7 +25,6 @@ from docx import Document
 load_dotenv()
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-OPENAI_API_KEY = os.getenv("OPENAI_KEY")   # only for embeddings
 
 if not PINECONE_API_KEY:
     st.error("Missing Pinecone API key.")
@@ -124,13 +123,11 @@ llm = ChatOllama(
 )
 
 # Keep OpenAI only for embeddings
-embeddings = OpenAIEmbeddings(
-    model="text-embedding-3-large",
-    openai_api_key=OPENAI_API_KEY,
-    dimensions=3072
+embeddings = OllamaEmbeddings(
+    model="nomic-embed-text"
 )
 
-index = Pinecone(api_key=PINECONE_API_KEY).Index("myindex")
+index = Pinecone(api_key=PINECONE_API_KEY).Index("local-index")
 
 vector_store = PineconeVectorStore(
     embedding=embeddings,
