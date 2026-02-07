@@ -5,7 +5,8 @@ import tempfile
 from langchain.chat_models import init_chat_model
 from langchain_openai import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
-from pinecone import Pinecone, ServerlessSpec
+from pinecone import Pinecone
+from pinecone import ServerlessSpec
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.tools import tool
