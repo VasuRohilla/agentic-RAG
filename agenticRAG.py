@@ -2,19 +2,21 @@ import streamlit as st
 from dotenv import load_dotenv
 import os
 import tempfile
-from langchain.chat_models import init_chat_model
-from langchain_openai import OpenAIEmbeddings
+
+# ----------- UPDATED IMPORTS -----------
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone
 from pinecone import ServerlessSpec
+
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_core.tools import tool
-from langgraph.prebuilt import create_react_agent
+from langchain.tools import tool
+
+from langgraph.prebuilt import create_react_agent as create_agent
 from langgraph.checkpoint.memory import MemorySaver
 from typing import List
 
-# For Word document processing
 from docx import Document
 
 # ----------------- ENV -----------------
@@ -36,7 +38,7 @@ def delete_vectors():
     return index.delete(delete_all=True)
 
 
-# AUTO DELETE - ONCE PER SESSION
+# AUTO DELETE ONCE PER SESSION
 if "cleaned" not in st.session_state:
     try:
         delete_vectors()
@@ -111,6 +113,11 @@ def add_docs_vectordb(files: List, vector_store):
 
 @tool(response_format="content_and_artifact")
 def retrieve(query: str):
+    """
+    Retrieve relevant document chunks from Pinecone based on user query.
+    Used by the LangGraph agent to perform RAG.
+    """
+
     retrieved_docs = vector_store.similarity_search(query, k=3)
 
     serialized = "\n\n".join(
@@ -133,15 +140,15 @@ def get_ai_response(input_message, graph, config):
 
 # ----------------- INIT -----------------
 
-llm = init_chat_model(
-    "gpt-4o-mini",
-    model_provider="openai",
-    api_key=OPENAI_API_KEY
+llm = ChatOpenAI(
+    model="gpt-4o-mini",
+    openai_api_key=OPENAI_API_KEY,
+    temperature=0
 )
 
 embeddings = OpenAIEmbeddings(
     model="text-embedding-3-large",
-    api_key=OPENAI_API_KEY,
+    openai_api_key=OPENAI_API_KEY,
     dimensions=3072
 )
 
@@ -154,9 +161,10 @@ vector_store = PineconeVectorStore(
 
 memory = MemorySaver()
 
-agent_executor = create_react_agent(llm, [retrieve], checkpointer=memory)
+agent_executor = create_agent(llm, [retrieve], checkpointer=memory)
 
 config = {"configurable": {"thread_id": "public-demo"}}
+
 
 # ----------------- UI -----------------
 
