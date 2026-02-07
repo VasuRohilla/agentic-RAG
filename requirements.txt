@@ -1,5 +1,6 @@
 streamlit
 langchain
+langchain-ollama
 langchain-openai
 langchain-pinecone
 pinecone
