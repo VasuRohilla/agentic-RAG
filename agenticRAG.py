@@ -35,7 +35,7 @@ def delete_vectors():
     return index.delete(delete_all=True)
 
 
-# 👉 AUTO DELETE ONCE PER SESSION
+# AUTO DELETE - ONCE PER SESSION
 if "cleaned" not in st.session_state:
     try:
         delete_vectors()
